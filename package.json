@@ -1,0 +1,27 @@
+{
+  "name": "today-sale-nodejs",
+  "version": "1.0.0",
+  "description": "Sales data processor with HTML parsing in Node.js and PDF parsing in Python",
+  "main": "api/index.js",
+  "scripts": {
+    "local": "node api/index.js",
+    "smoke": "node smoke-test.js",
+    "vercel-local": "vercel dev"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.2"
+  },
+  "keywords": [
+    "sales",
+    "reporting",
+    "vercel",
+    "nodejs"
+  ],
+  "engines": {
+    "node": ">=20.16.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
