@@ -38,6 +38,7 @@ def parse_pdf_route() -> object:
             "rows": parsed.get("rows") or [],
             "extractedDate": parsed.get("extractedDate") or "",
             "rowsProcessed": parsed.get("rowsProcessed") or 0,
+            "depot": parsed.get("depot") or None,
         })
     except Exception as exc:  # pragma: no cover
         return jsonify({"success": False, "error": str(exc)}), 500

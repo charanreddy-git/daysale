@@ -13,6 +13,13 @@ PRODUCT_CODE_RE = re.compile(r"^[A-Z0-9-]{6,}$")
 NUMBER_RE = re.compile(r"^-?\d[\d,]*(?:\.\d+)?$")
 STOCK_RE = re.compile(r"^-?\d[\d,]*(?:\.\d+)?/-?\d[\d,]*(?:\.\d+)?$")
 
+DEPOT_PATTERNS: list[re.Pattern[str]] = [
+    re.compile(r"IML\s*DEPOT\s*:?\s*IMFL\s*Depot\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s*[-–—]\s*([IVX]+|\d+)", re.IGNORECASE),
+    re.compile(r"IML\s*DEPOT\s*:?\s*IMFL\s*Depot\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)", re.IGNORECASE),
+    re.compile(r"IMFL\s*Depot\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s*[-–—]\s*([IVX]+|\d+)", re.IGNORECASE),
+    re.compile(r"IMFL\s*Depot\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)", re.IGNORECASE),
+]
+
 
 def _stock_to_float(value: str) -> float:
     text = str(value or "").strip()
@@ -36,6 +43,40 @@ def _to_float(value: str) -> float:
 
 def _clean_cell(value: object) -> str:
     return re.sub(r"\s+", " ", str(value or "").replace("\n", " ")).strip()
+
+
+def _extract_depot(text: str) -> Optional[Dict[str, str]]:
+    raw_text = str(text or "").replace("\u00a0", " ")
+    if not raw_text:
+        return None
+
+    location_part = ""
+    suffix_part = ""
+
+    for pattern in DEPOT_PATTERNS:
+        match = pattern.search(raw_text)
+        if not match:
+            continue
+        location_part = str(match.group(1) or "").strip()
+        if match.lastindex and match.lastindex >= 2:
+            suffix_part = str(match.group(2) or "").strip()
+        break
+
+    if not location_part:
+        return None
+
+    location_token = (location_part.split() or [""])[-1]
+    suffix = f"-{suffix_part.upper()}" if suffix_part else ""
+    raw = f"{location_token}{suffix}"
+    if not raw:
+        return None
+
+    return {
+        "location": location_token,
+        "suffix": suffix,
+        "raw": raw,
+        "code": raw,
+    }
 
 
 def _parse_line_to_row(line: str) -> Optional[Row]:
@@ -174,12 +215,15 @@ def parse_pdf(pdf_path: str) -> Dict[str, object]:
     source = Path(pdf_path)
     rows: List[Row] = []
     extracted_date = ""
+    depot: Optional[Dict[str, str]] = None
 
     with pdfplumber.open(source) as pdf:
         for page in pdf.pages:
             text = page.extract_text() or ""
             if not extracted_date:
                 extracted_date = _extract_date(text)
+            if depot is None:
+                depot = _extract_depot(text)
             rows.extend(_parse_tables(page))
             rows.extend(_parse_text(text))
 
@@ -188,6 +232,7 @@ def parse_pdf(pdf_path: str) -> Dict[str, object]:
         "rows": deduped_rows,
         "extractedDate": extracted_date,
         "rowsProcessed": len(deduped_rows),
+        "depot": depot,
     }
 
 

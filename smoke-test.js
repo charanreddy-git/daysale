@@ -40,8 +40,8 @@ async function createFixtures(tempDir) {
   const txtPath = path.join(tempDir, 'sample.txt');
   const pdfPath = path.join(tempDir, 'sample.pdf');
 
-  const html = '<html><body><div>Date: 11-Mar-2026</div><table><tr><th>Slno</th><th>Product Code</th><th>Item Description</th><th>Opening Stock</th><th>Received Stock</th><th>Sale Case</th><th>Sale Btls.</th><th>Sale Amount</th><th>Closing Stock</th></tr><tr><td>1</td><td>1661B5016GBS</td><td>KFL GBS</td><td>20</td><td>5</td><td>4</td><td>0</td><td>4000</td><td>21</td></tr><tr><td>2</td><td>1661B5029GBS</td><td>KFU GBS</td><td>12</td><td>0</td><td>3</td><td>0</td><td>3000</td><td>9</td></tr></table></body></html>';
-  const text = '11-Mar-2026\n1 1661B5016GBS KFL GBS 20/0 4 0 4000 16/0\n2 1661B5029GBS KFU GBS 12/0 3 0 3000 9/0\n';
+  const html = '<html><body><div>IML DEPOT : IMFL Depot Medchal-II</div><div>Date: 11-Mar-2026</div><table><tr><th>Slno</th><th>Product Code</th><th>Item Description</th><th>Opening Stock</th><th>Received Stock</th><th>Sale Case</th><th>Sale Btls.</th><th>Sale Amount</th><th>Closing Stock</th></tr><tr><td>1</td><td>1661B5016GBS</td><td>KFL GBS</td><td>20</td><td>5</td><td>4</td><td>0</td><td>4000</td><td>21</td></tr><tr><td>2</td><td>1661B5029GBS</td><td>KFU GBS</td><td>12</td><td>0</td><td>3</td><td>0</td><td>3000</td><td>9</td></tr></table></body></html>';
+  const text = 'IML DEPOT : IMFL Depot Hyderbad-II\n11-Mar-2026\n1 1661B5016GBS KFL GBS 20/0 4 0 4000 16/0\n2 1661B5029GBS KFU GBS 12/0 3 0 3000 9/0\n';
 
   await fs.writeFile(htmlPath, html);
   await fs.writeFile(txtPath, text);
@@ -96,8 +96,24 @@ async function main() {
       throw new Error('HTML smoke test failed.');
     }
 
+    if (htmlResult.depot?.code !== 'Medchal-II') {
+      throw new Error(`HTML depot parse failed (got ${htmlResult.depot?.code || 'empty'}).`);
+    }
+
+    if (!String(htmlResult.sales?.report_text || '').includes('Depot:Medchal-II SALE')) {
+      throw new Error('HTML report did not include parsed depot.');
+    }
+
     if (pdfResult.sourceType !== 'pdf' || pdfResult.conversion.rowsProcessed !== 2) {
       throw new Error('PDF smoke test failed.');
+    }
+
+    if (pdfResult.depot?.code !== 'Hyderbad-II') {
+      throw new Error(`PDF depot parse failed (got ${pdfResult.depot?.code || 'empty'}).`);
+    }
+
+    if (!String(pdfResult.sales?.report_text || '').includes('Depot:Hyderbad-II SALE')) {
+      throw new Error('PDF report did not include parsed depot.');
     }
 
     console.log(JSON.stringify({
