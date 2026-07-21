@@ -1,4 +1,4 @@
-#!/Users/charan/projects/nana/js-htm/.venv/bin/python3
+#!/Users/charan/dev/daysale/.venv/bin/python3.14
 """Extract pdf structure in XML format"""
 
 import logging

@@ -1,4 +1,4 @@
-#!/Users/charan/projects/nana/js-htm/.venv/bin/python3
+#!/Users/charan/dev/daysale/.venv/bin/python3.14
 """A command line tool for extracting text and images from PDF and
 output it to plain text, html, xml or tags.
 """

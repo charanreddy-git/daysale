@@ -17,6 +17,9 @@ coverage/
 # nyc test coverage
 .nyc_output
 
+# Python virtual environment
+.venv/
+
 # Environment variables
 .env
 .env.local

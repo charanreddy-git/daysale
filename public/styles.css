@@ -210,12 +210,6 @@ body {
     letter-spacing: -0.01em;
 }
 
-.results-content:empty::before {
-    content: 'No data available';
-    color: #9ca3af;
-    font-style: italic;
-    font-family: 'Inter', sans-serif;
-}
 
 /* Copy Button */
 .copy-button {
