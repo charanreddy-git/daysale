@@ -3,8 +3,13 @@ const multer = require('multer');
 const path = require('path');
 
 const { createParserError, parseUpload } = require('../lib/parser');
+const { requestLogger } = require('../lib/logger');
+const { rateLimiter } = require('../lib/ratelimit');
+
+const PARSE_TIMEOUT_MS = Number.parseInt(process.env.PARSE_TIMEOUT_MS || '50000', 10);
 
 const app = express();
+app.use(requestLogger);
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -19,21 +24,34 @@ function getBaseUrl(req) {
   return `${protocol}://${host}`;
 }
 
+function withTimeout(promise, ms) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(createParserError('Request timed out.', 504));
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 app.use(express.static(path.resolve(__dirname, '../public')));
 
 app.get('/api/test', (_req, res) => {
   res.json({ success: true });
 });
 
-app.post('/api/parse', upload.single('file'), async (req, res) => {
+app.post('/api/parse', upload.single('file'), rateLimiter, async (req, res) => {
   try {
     if (!req.file) {
       throw createParserError('No file uploaded.');
     }
 
-    const result = await parseUpload(req.file, { baseUrl: getBaseUrl(req) });
+    req.log.info('Parsing upload', { filename: req.file.originalname, size: req.file.size });
+    const result = await withTimeout(parseUpload(req.file, { baseUrl: getBaseUrl(req) }), PARSE_TIMEOUT_MS);
+    req.log.info('Parse complete', { rows: result.conversion.rowsProcessed });
     res.json({ success: true, result });
   } catch (error) {
+    req.log.error('Parse failed', { error: error.message });
     const statusCode = Number.isInteger(error.status) ? error.status : 400;
     res.status(statusCode).json({
       success: false,
