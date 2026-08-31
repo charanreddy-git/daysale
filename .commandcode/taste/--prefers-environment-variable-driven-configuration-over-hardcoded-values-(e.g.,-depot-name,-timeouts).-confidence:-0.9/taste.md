@@ -1,0 +1,10 @@
+# - Prefers environment-variable-driven configuration over hardcoded values (e.g., depot name, timeouts). Confidence: 0.9
+- Prefers environment-variable-driven configuration over hardcoded values (e.g., depot name, timeouts). Confidence: 0.9
+- Communicates code review findings using structured gap/risk tables (Gap column paired with concrete Risk column). Confidence: 0.8
+- Values production resilience in serverless functions: explicit timeouts, retry logic with backoff, rate limiting. Confidence: 0.85
+- Values input validation at multiple levels (magic bytes, not just extension/MIME). Confidence: 0.8
+- Values structured logging with request IDs for production traceability over ad-hoc console.error. Confidence: 0.85
+- Prefers removing dead code branches that can never execute. Confidence: 0.8
+- Thinks about edge cases that affect correctness: DST transitions, leap years, month/year boundaries. Confidence: 0.8
+- Prefers explicit, typed error handling (e.g., checking error.killed, error.status) over generic catch-all messages. Confidence: 0.7
+- Prioritizes fixes by assessing whether they are "worth solving" — weighs risk impact and likelihood. Confidence: 0.7
